@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const ParentTaskSchema = new Schema({
-    parenttask: {type: String, required: true}
+    Parent_ID: {type: Number},
+    Parent_Task: {type: String, required: true},
+    Project_ID: {type: Number, default: null}
 });
 
-module.exports = mongoose.model('parenttask', ParentTaskSchema);
+module.exports = mongoose.model('ParentTask', ParentTaskSchema);

@@ -4,7 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 userRepo = require('./repo/user-repo')
 projectRepo = require('./repo/project-repo'),
-parentTaskRepo = require('./repo/parentTask-repo')
+    parentTaskRepo = require('./repo/parentTask-repo')
 taskRepo = require('./repo/task-repo');
 
 var app = express();
@@ -19,7 +19,11 @@ app.use(bodyparser.json());
 app.use(cors());
 
 // connecting to mongoose database
-mongoose.connect('mongodb://localhost:27017/ProjectManagement');
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb://127.0.0.1:27017/ProjectManagement').then(
+    () => { console.log('ProjectManagement Database is connected') },
+    err => { console.log('Can not connect to the ProjectManager database' + err) }
+);
 
 // routing layer for models
 app.use('/users', userRepo);
@@ -27,7 +31,7 @@ app.use('/projects', projectRepo);
 app.use('/parenttasks', parentTaskRepo);
 app.use('/tasks', taskRepo);
 
-app.listen(PORT, ()=>{
+app.listen(PORT, () => {
     console.log('Server listening Port ' + PORT);
 })
 

@@ -1,16 +1,15 @@
 const express = require('express');
 const taskRepo = express.Router();
 
-var Project = require('../models/project');
-var Task = require('../models/task');
+let Project = require('../models/project');
+let Task = require('../models/task');
+let User = require('../models/users');
 
 // add new task
 taskRepo.route('/add').post(function (req, res) {
-
-    let newTask = new Task(req.body);
-
-    newTask.save()
-        .then(newTask => {
+    let addTask = new Task(req.body);
+    addTask.save()
+        .then(addTask => {
             res.status(200).json({ 'Success': true })
         })
         .catch(err => {
@@ -30,44 +29,44 @@ taskRepo.route('/delete/:id').get(function (req, res) {
         task.save().then(updateTask => {
             res.status(200).json({ 'Success': true })
         })
-            .catch(err => {
-                res.status(400).send({ 'Success': false, 'Message': 'Error while updating task' });
-            });
+        .catch(err => {
+            res.status(400).send({ 'Success': false, 'Message': 'Error while updating task' });
+        });
 
     });
 });
 
-//list tasks of that project
+// to list tasks of that project
 taskRepo.route('/').get(function (req, res) {
-
+    console.log("list tasks of that project");
     var taskQuery = Task.find();
     var queryparams = req.query;
 
     if (queryparams.projectId) {
 
-        Project.findOne({ projectid: queryparams.projectId }, function (err, project) {
+        Project.findOne({ Project_ID: queryparams.projectId }, function (err, project) {
 
             taskQuery.or([
-                { Project: projectId }
+                { Project: project._id}
             ]);
 
             if (queryparams.sortKey) {
                 var sortdirection = 1;
-                if (queryparams.sortKey == "status") {
+                if (queryparams.sortKey == "Status") {
                     sortdirection = -1;
                 }
                 taskQuery.sort([[queryparams.sortKey, sortdirection]]);
             }
 
             taskQuery
-                .populate('Project')
-                .populate('User')
-                .populate('Parent');
+                .populate('ProjectSchema')
+                .populate('UsersSchema')
+                .populate('ParentTaskSchema');
 
             taskQuery.exec(function (err, tasks) {
 
                 if (err) {
-                    res.json({ 'Success': false })
+                    res.json({ 'Success': false, 'Error': err});
                 }
                 else {
                     res.json({ 'Success': true, 'Data': tasks });
@@ -81,11 +80,11 @@ taskRepo.route('/').get(function (req, res) {
 taskRepo.route('/:id').get(function (req, res) {
 
     let taskId = req.params.id;
-
+console.log("taskId = " + taskId);
     var taskQuery = Task.findOne({ Task_ID: taskId })
-        .populate('Project')
-        .populate('User')
-        .populate('Parent');
+        .populate('ProjectSchema')
+        .populate('UsersSchema')
+        .populate('ParentTaskSchema');
 
     taskQuery.exec(function (err, task) {
         if (err) {
@@ -102,7 +101,7 @@ taskRepo.route('/edit').post(function (req, res) {
 
     let updateTask = new Task(req.body);
 
-    Task.findOne({ Task_ID: updateTask.taskid }, function (err, task) {
+    Task.findOne({ Task_ID: updateTask.Task_ID }, function (err, task) {
 
         task.Task = updateTask.Task;
         task.Priority = updateTask.Priority;

@@ -1,41 +1,39 @@
 const express = require('express');
 const userRepo = express.Router();
-
-var User = require('../models/users');
+const url = require('url');
+let User = require('../models/users');
 
 // to add new user
 userRepo.route('/add').post(function (req, res) {
-    let user = new User(req.body);
-    console.log(user);
-
-    user.save()
-        .then(user => {
-            res.status(200).json({ 'success': true, 'message': 'User added successfully' });
+    let newuser = new User(req.body);
+    newuser.save()
+        .then(newuser => {
+            res.status(200).json({ 'Success': true, 'message': 'User added successfully' });
         })
         .catch(err => {
-            res.status(400).json({ 'success': false, 'message': 'Error in adding user' });
+            res.status(400).json({ 'Success': false, 'message': 'Error in adding user' });
         })
 })
 
 // to delete user by id
 userRepo.route('/delete/:id').get(function (req, res) {
-    let id = req.params.id;
+    let _uid = req.params.id;
 
-    User.findOneAndRemove({ User_ID: id }, function (err, data) {
+    User.findOneAndRemove({ User_ID: _uid }, function (err, data) {
         if (err) {
-            res.json({ 'success': false, 'message': 'Error in deleting user' });
+            res.json({ 'Success': false, 'message': 'Error in deleting user' });
         }
         else {
-            res.json({ 'success': true, 'message': 'User deleted successfully' })
+            res.json({ 'Success': true, 'message': 'User deleted Successfully' })
         }
     })
 })
 
 // to edit user by id
 userRepo.route('/edit/:id').post(function (req, res) {
-    let id = req.params.id;
+    let _uid = req.params.id;
 
-    User.findOneAndUpdate({ User_ID: id }, function (err, user) {
+    User.findOne({ User_ID: _uid }, function (err, user) {
         if (!user) {
             return next(new Error('User not exists'));
         }
@@ -46,10 +44,10 @@ userRepo.route('/edit/:id').post(function (req, res) {
 
             user.save()
                 .then(user => {
-                    res.status(200).json({ 'success': true, 'message': 'User updated successfully' });
+                    res.status(200).json({ 'Success': true, 'message': 'User updated Successfully' });
                 })
                 .catch(err => {
-                    res.status(400).json({ 'success': false, 'message': 'Error in updating user' });
+                    res.status(400).json({ 'Success': false, 'message': 'Error in updating user' });
                 })
         }
     })
@@ -57,10 +55,23 @@ userRepo.route('/edit/:id').post(function (req, res) {
 
 // get user by id
 userRepo.route('/:id').get(function (req, res) {
+    let _uid = req.params.id;
 
-    let _id = req.params.id;
+    User.findOne({ User_ID: _uid }, function (err, user) {
+        if (err) {
+            res.json({ 'Success': false, 'Message': 'User not exists' })
+        }
+        else {
+            res.json({ 'Success': true, 'Data': user });
+        }
+    });
+});
 
-    User.findOne({ User_ID: _id }, function (err, user) {
+// get user by object
+userRepo.route('/obj/:id').get(function (req, res) {
+    let _uid = req.params.id;
+
+    User.findOne({ _id: _uid }, function (err, user) {
         if (err) {
             res.json({ 'Success': false, 'Message': 'User not exists' })
         }
@@ -72,21 +83,20 @@ userRepo.route('/:id').get(function (req, res) {
 
 // get users list with search and sort criteria
 userRepo.route('/').get(function (req, res) {
-    let queryparam = req.query;
-    let query = User.find();
+    var userQuery = User.find();
+    var queryparams = req.query;
 
-    if (queryparam.sort) {
-        query.sort([queryparam.sort, 1]);
-    }
-
-    if (queryparam.search) {
+    if (queryparams.searchKey) {
         userQuery.or([
-            { 'First_Name': { $regex: queryparam.search, $options: 'i' } },
-            { 'Last_Name': { $regex: queryparam.search, $options: 'i' } }
+            { 'First_Name': { $regex: queryparams.searchKey, $options: 'i' } },
+            { 'Last_Name': { $regex: queryparams.searchKey, $options: 'i' } }
         ]);
     }
+    if (queryparams.sortKey) {
+        userQuery.sort([[queryparams.sortKey, 1]]);
+    }
 
-    userQuery.exec((err, users) => {
+    userQuery.exec(function(err, users) {
 
         if (err) {
             res.json({ 'Success': false })
@@ -100,9 +110,9 @@ userRepo.route('/').get(function (req, res) {
 // assign user as Project Manager
 userRepo.route('/edit/:id').post(function (req, res) {
 
-    let _id = req.params.id;
+    let _uid = req.params.id;
 
-    User.findOne({ User_ID: _id }, function (err, user) {
+    User.findOne({ User_ID: _uid }, function (err, user) {
         if (!user)
             return next(new Error('user not found'));
         else {
@@ -119,9 +129,9 @@ userRepo.route('/edit/:id').post(function (req, res) {
 // assign user with task
 userRepo.route('/edit/:id').post(function (req, res) {
 
-    let _id = req.params.id;
+    let _uid = req.params.id;
 
-    User.findOne({ User_ID: _id }, function (err, user) {
+    User.findOne({ User_ID: _uid }, function (err, user) {
         if (!user)
             return next(new Error('user not found'));
         else {

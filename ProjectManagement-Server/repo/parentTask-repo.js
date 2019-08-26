@@ -26,7 +26,7 @@ parenttaskRepo.route('/').get(function (req, res) {
 
     if (queryparams.searchKey) {
         parentTaskQuery.or([
-            { 'ParentTask': { $regex: queryparams.searchKey, $options: 'i' } }]);
+            { 'Parent_Task': { $regex: queryparams.searchKey, $options: 'i' } }]);
     }
 
     parentTaskQuery.exec(function (err, tasks) {
@@ -42,10 +42,21 @@ parenttaskRepo.route('/').get(function (req, res) {
 
 // to get single task
 parenttaskRepo.route('/:id').get(function (req, res) {
-
     let parentId = req.params.id;
 
-    ParentTask.findOne({ parentid: parentId }, function (err, task) {
+    ParentTask.findOne({ Parent_ID: parentId }, function (err, task) {
+        if (err) {
+            res.json({ 'Success': false, 'Message': 'Parent task not found' })
+        }
+        else {
+            res.json({ 'Success': true, 'Data': task });
+        }
+    });
+});
+
+parenttaskRepo.route('/obj/:id').get(function (req, res) {
+    let parentId = req.params.id;
+    ParentTask.findOne({ _id: parentId }, function (err, task) {
         if (err) {
             res.json({ 'Success': false, 'Message': 'Parent task not found' })
         }

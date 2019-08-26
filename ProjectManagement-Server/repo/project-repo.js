@@ -2,15 +2,13 @@ const express = require('express');
 const projectRepo = express.Router();
 
 var Project = require('../models/project');
-var User = require('../models/users');
+//var User = require('../models/users');
 
 // to add new project
 projectRepo.route('/add').post(function (req, res) {
-
-    let project = new Project(req.body);
-
-    project.save()
-        .then(project => {
+    let newproject = new Project(req.body);
+    newproject.save()
+        .then(newproject => {
             res.status(200).json({ 'Success': true })
         })
         .catch(err => {
@@ -20,9 +18,7 @@ projectRepo.route('/add').post(function (req, res) {
 
 // to delete project
 projectRepo.route('/delete/:id').get(function (req, res) {
-
     let _pid = req.params.id;
-
     Project.find({ Project_ID: _pid }).remove(function (err, user) {
         if (err)
             res.json({ 'Success': false, 'Message': 'Project not found' });
@@ -31,13 +27,23 @@ projectRepo.route('/delete/:id').get(function (req, res) {
     });
 });
 
-
-// to get project
+// to get project by Project_ID
 projectRepo.route('/:id').get(function (req, res) {
-
     let _pid = req.params.id;
-
     Project.findOne({ Project_ID: _pid }, function (err, project) {
+        if (err) {
+            res.json({ 'Success': false, 'Message': 'Project not found' })
+        }
+        else {
+            res.json({ 'Success': true, 'Data': project });
+        }
+    });
+});
+
+// to get project by object id
+projectRepo.route('/obj/:id').get(function (req, res) {
+    let _pid = req.params.id;
+    Project.findOne({ _id: _pid }, function (err, project) {
         if (err) {
             res.json({ 'Success': false, 'Message': 'Project not found' })
         }
@@ -63,7 +69,7 @@ projectRepo.route('/').get(function (req, res) {
     }
 
     projectQuery
-        .populate('Task', ['Task_ID', 'Status'])
+        .populate('Tasks', ['Task_ID', 'Status'])
         .exec(function (err, projects) {
 
             if (err) {
@@ -81,7 +87,7 @@ projectRepo.route('/').get(function (req, res) {
 projectRepo.route('/edit/:id').post(function (req, res) {
 
     let _pid = req.params.id;
-
+    console.log("Update Project for ID = " + _pid);
     Project.findOne({ Project_ID: _pid }, function (err, project) {
         if (!project)
             return next(new Error('project not found'));
